@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  bitlbee:
+    build: ./bitlbee
+    restart: unless-stopped
+    container_name: bitlbee
+    volumes:
+      - bitlbeeData:/var/lib/bitlbee
+
+  weechat:
+    build: ./weechat
+    restart: unless-stopped
+    container_name: weechat
+    ports:
+      - '9001:9001'
+    environment:
+      - relay_password=${relay_password}
+    volumes:
+      - weechatData:/config
+
+volumes:
+  bitlbeeData:
+  weechatData:
