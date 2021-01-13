@@ -1,6 +1,27 @@
 version: '3.8'
 
 services:
+  traefik:
+    image: 'traefik:latest'
+    container_name: 'traefik'
+    restart: always
+    command:
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.web.http.redirections.entrypoint.to=websecure'
+      - '--entrypoints.web.http.redirections.entrypoint.scheme=https'
+      - '--entrypoints.websecure.address=:443'
+      - '--certificatesresolvers.myresolver.acme.tlschallenge=true'
+      - '--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json'
+      # - '--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory'
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - 'certs:/letsencrypt'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+
   bitlbee:
     build: ./bitlbee
     restart: unless-stopped
@@ -12,13 +33,17 @@ services:
     build: ./weechat
     restart: unless-stopped
     container_name: weechat
-    ports:
-      - '9001:9001'
     environment:
       - relay_password=${relay_password}
     volumes:
       - weechatData:/config
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.weechat.rule=Host(`${host}`)'
+      - 'traefik.http.routers.weechat.entrypoints=websecure'
+      - 'traefik.http.routers.weechat.tls.certresolver=myresolver'
 
 volumes:
   bitlbeeData:
   weechatData:
+  certs:
