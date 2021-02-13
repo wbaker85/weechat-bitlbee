@@ -55,6 +55,15 @@ services:
       - 'traefik.http.routers.weechat.entrypoints=websecure'
       - 'traefik.http.routers.weechat.tls.certresolver=myresolver'
 
+  duckdns:
+    image: linuxserver/duckdns
+    container_name: 'duckdns'
+    restart: always
+    environment:
+      - TZ=America/Detroit
+      - SUBDOMAINS=${duckdns_subdomains}
+      - TOKEN=${duckdns_token}
+
 volumes:
   bitlbeeData:
   weechatData:
