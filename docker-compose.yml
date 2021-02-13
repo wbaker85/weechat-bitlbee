@@ -14,13 +14,25 @@ services:
       - '--entrypoints.websecure.address=:443'
       - '--certificatesresolvers.myresolver.acme.tlschallenge=true'
       - '--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json'
+      - '--api.insecure=true'
       # - '--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory'
     ports:
       - '80:80'
+      - '8080:8080'
       - '443:443'
     volumes:
       - 'certs:/letsencrypt'
       - '/var/run/docker.sock:/var/run/docker.sock:ro'
+
+  glowing-bear:
+    build: ./glowing-bear
+    restart: unless-stopped
+    container_name: glowing-bear
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.ui.rule=Host(`${host}`)'
+      - 'traefik.http.routers.ui.entrypoints=websecure'
+      - 'traefik.http.routers.ui.tls.certresolver=myresolver'
 
   bitlbee:
     build: ./bitlbee
@@ -39,7 +51,7 @@ services:
       - weechatData:/config
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.weechat.rule=Host(`${host}`)'
+      - 'traefik.http.routers.weechat.rule=Host(`${host}`) && Path(`/weechat`)'
       - 'traefik.http.routers.weechat.entrypoints=websecure'
       - 'traefik.http.routers.weechat.tls.certresolver=myresolver'
 
